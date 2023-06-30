@@ -1,0 +1,14 @@
+# Dossiers à ignorer
+.venv/  # Répertoire virtuel (environnement virtuel)
+
+# Fichiers à ignorer
+*.pyc  # Fichiers bytecode Python
+*.pyo  # Autres fichiers Python compilés
+__pycache__/  # Cache Python
+instance/  # Dossier d'instance Flask
+*.sqlite  # Fichiers de base de données SQLite
+
+# Environnement de développement spécifique (exemple : PyCharm)
+.idea/
+*.iml
+*.iws
