@@ -6,4 +6,8 @@ Flask-Bcrypt==1.0.1
 SQLAlchemy==2.0.17
 flask-cors==4.0.0
 mysql-connector-python==8.0.33
+pyJWT==2.7.0
+python-decouple==3.8
+flask-jwt-extended==4.5.2
+python-dotenv==1.0.0
 

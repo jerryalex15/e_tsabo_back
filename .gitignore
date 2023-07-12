@@ -7,6 +7,7 @@
 __pycache__/  # Cache Python
 instance/  # Dossier d'instance Flask
 *.sqlite  # Fichiers de base de données SQLite
+*.env
 
 # Environnement de développement spécifique (exemple : PyCharm)
 .idea/
