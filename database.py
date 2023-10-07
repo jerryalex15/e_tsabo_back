@@ -11,7 +11,7 @@ from decouple import config
 host = config('host', default='localhost')
 user = config('user', default='root')
 password = config('password', default='')
-database = config('database', default='')
+database = config('etsabodb', default='')
 
 # Établir la connexion
 try:
