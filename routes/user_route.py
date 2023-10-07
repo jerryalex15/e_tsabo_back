@@ -34,7 +34,9 @@ def login():
     cur.execute("SELECT id,username,password FROM users WHERE username = %s", (username,))
     user = cur.fetchone()
     cur.close()
+
     # connection.close()
+
     user_tuple= (("id",user[0]),("username",user[1]),("password",user[2]))
     dict_user= dict(user_tuple)
     
