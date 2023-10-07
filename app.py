@@ -5,14 +5,18 @@ from flask_wtf import FlaskForm
 from flask_bcrypt import Bcrypt
 from routes.user_route import user_route
 from decouple import Config,Csv
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
+import jwt
 
 app = Flask(__name__)
 CORS(app)
-app.config.from_object('config')
+app.config['SECRET_KEY'] = 'fyfedsqdohazjepoka785'
+app.config['DEBUG'] = True
+app.config['JWT_TOKEN_LOCATION'] = ['headers']
+jwt = JWTManager(app)
+
 bcrypt = Bcrypt(app)
 
-jwt = JWTManager(app)
 app.register_blueprint(user_route)
 
 if __name__ == '__main__':

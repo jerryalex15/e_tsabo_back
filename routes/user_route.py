@@ -3,7 +3,7 @@ from classes.RegistrationForm import RegistrationForm
 from database import connection
 import jwt
 from decouple import config
-from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 
 
 
@@ -37,26 +37,25 @@ def login():
 
     # connection.close()
 
-    user_tuple= (("id",user[0]),("username",user[1]),("password",user[2]))
-    dict_user= dict(user_tuple)
-    
-
     if user:
+        user_tuple= (('id',user[0]),('username',user[1]),('password',user[2]))
+        dict_user= dict(user_tuple)
         # Vérifier le mot de passe
         if password == dict_user['password']:
             # Authentification réussie
             
             payload = {'username':dict_user['username']}
             # secret_key ="gdfsfdhgfdgv"
-            secret_key = app.config['JWT_SECRET_KEY']
-            app.config['JWT_TOKEN_LOCATION'] = ['headers']
+            secret_key = current_app.config['SECRET_KEY']
+            user_id = dict_user['id'] 
+            access_token = create_access_token(identity=user_id)
             token = jwt.encode(payload, secret_key, algorithm='HS256') 
             response = {
                 'idUser': dict_user['id'],
                 'success': True,
                 'message': 'Authentification réussie',
-                'token' : token
-            }
+                'token' : access_token
+            },200
             
             
         else:
@@ -79,7 +78,7 @@ def login():
 #Pour déchiffrer et vérifier un token dans un route protégée, on utilise le décorateur 'jwt_required()' de la bibliothèque Flask-JWT-Extended
 #ou implémenter un vérification de token en utilisant la méthode 'jwt.decode'
 
-jwt = JWTManager(app)
+
 @user_route.route('/protected', methods=['GET'])
 @jwt_required(locations=["headers"])
 def protected():
