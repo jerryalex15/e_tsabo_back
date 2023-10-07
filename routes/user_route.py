@@ -1,9 +1,10 @@
-from flask import Blueprint, flash, request, redirect, url_for, jsonify
+from flask import Blueprint, flash, request, redirect, url_for, jsonify,current_app
 from classes.RegistrationForm import RegistrationForm
 from database import connection
 import jwt
 from decouple import config
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
+
 
 
 user_route = Blueprint('user', __name__)
@@ -20,6 +21,8 @@ def registration():
    
     # ...
 
+
+
 @user_route.route('/api/user_route/login', methods=['POST'])
 def login():
     # Récupérer les données d'identification de l'utilisateur depuis la requête POST
@@ -31,7 +34,7 @@ def login():
     cur.execute("SELECT id,username,password FROM users WHERE username = %s", (username,))
     user = cur.fetchone()
     cur.close()
-    connection.close()
+    # connection.close()
     user_tuple= (("id",user[0]),("username",user[1]),("password",user[2]))
     dict_user= dict(user_tuple)
     
@@ -43,14 +46,16 @@ def login():
             
             payload = {'username':dict_user['username']}
             # secret_key ="gdfsfdhgfdgv"
-            secret_key = config('SECRET_KEY')
-            
+            secret_key = app.config['JWT_SECRET_KEY']
+            app.config['JWT_TOKEN_LOCATION'] = ['headers']
+            token = jwt.encode(payload, secret_key, algorithm='HS256') 
             response = {
                 'idUser': dict_user['id'],
                 'success': True,
                 'message': 'Authentification réussie',
-                'token': jwt.encode(payload, secret_key, algorithm='HS256')  # jeton d'accès généré
+                'token' : token
             }
+            
             
         else:
             # Mot de passe incorrect
@@ -72,9 +77,11 @@ def login():
 #Pour déchiffrer et vérifier un token dans un route protégée, on utilise le décorateur 'jwt_required()' de la bibliothèque Flask-JWT-Extended
 #ou implémenter un vérification de token en utilisant la méthode 'jwt.decode'
 
+jwt = JWTManager(app)
 @user_route.route('/protected', methods=['GET'])
-@jwt_required()
+@jwt_required(locations=["headers"])
 def protected():
+
     #obtenir l'identiter de l'utilisateur à partir du token
     current_user = get_jwt_identity() 
     #print(current_user)  #pour vérifier ce qu'il y a dedans
