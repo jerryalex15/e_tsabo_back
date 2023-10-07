@@ -1,24 +1,77 @@
 from flask import Blueprint, flash, request, redirect, url_for, jsonify,current_app
-from classes.RegistrationForm import RegistrationForm
 from database import connection
 import jwt
 from decouple import config
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
-
+from database import connection
+import bcrypt
 
 
 user_route = Blueprint('user', __name__)
 
-@user_route.route('/api/user_route/registration', methods=['GET', 'POST'])
+@user_route.route('/api/user_route/registration', methods=[ 'POST'])
 def registration():
-    registration_form = RegistrationForm()
-    # login_form = LoginForm()
+    
 
-    if registration_form.validate_on_submit():
-        registration_form.save_user()
-        flash('Account created successfully!', 'success')
-        return redirect(url_for('home'))
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
+        name = data.get('name')
+        gender = data.get('gender')
+        birthdate = data.get('birthdate')
+
+        
+        
+    
+        # Validez les données comme vous le feriez normalement
+        if not username or not email or not password or not confirm_password:
+            return jsonify({'error': 'Tous les champs sont requis'}), 400
+
+        #Testez si le nom d'utilisateur est déjà pris
+        cursor = connection.cursor()
+        query = "SELECT * FROM users WHERE username = %s"
+        cursor.execute(query, (username,))
+        if cursor.fetchone():
+            cursor.close()
+            connection.close()
+            return jsonify({'error': 'Ce nom d\'utilisateur est déjà pris'}), 400
+
+        #Testez si l'adresse email est déjà utiliser
+        cursor = connection.cursor()
+        query = "SELECT * FROM users WHERE email = %s"
+        cursor.execute(query, (email,))
+        if cursor.fetchone():
+            cursor.close()
+            connection.close()
+            return jsonify({'error': 'Cet adresse email est déjà utilisé'}), 400
+
+        if password != confirm_password:
+            return jsonify({'error': 'Les mots de passe ne correspondent pas'}), 400
+
+        #Enregistrer utilisateur
+
+        cursor = connection.cursor()
+        query = "INSERT INTO users (username, email, password,name,birthdate,gender) VALUES  (%s, %s, %s,%s,%s,%s)"
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        cursor.execute(query, (username, email,hashed_password, name,birthdate,gender))
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        response_data = {
+            "success" : True,
+            "message" : "Inscription réussi"
+        }
+        return jsonify(response_data),200
+
    
+    except Exception as e:
+        # Gérez les exceptions en fonction de vos besoins
+        error_message = str(e)
+        return jsonify({'error': error_message}), 500
     # ...
 
 
@@ -34,22 +87,19 @@ def login():
     cur.execute("SELECT id,username,password FROM users WHERE username = %s", (username,))
     user = cur.fetchone()
     cur.close()
-
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     # connection.close()
 
     if user:
         user_tuple= (('id',user[0]),('username',user[1]),('password',user[2]))
         dict_user= dict(user_tuple)
         # Vérifier le mot de passe
-        if password == dict_user['password']:
+        if bcrypt.checkpw(password.encode('utf-8'), dict_user['password'].encode('utf-8')):
             # Authentification réussie
             
-            payload = {'username':dict_user['username']}
-            # secret_key ="gdfsfdhgfdgv"
-            secret_key = current_app.config['SECRET_KEY']
             user_id = dict_user['id'] 
             access_token = create_access_token(identity=user_id)
-            token = jwt.encode(payload, secret_key, algorithm='HS256') 
+           
             response = {
                 'idUser': dict_user['id'],
                 'success': True,
@@ -65,6 +115,7 @@ def login():
                 'message': 'Votre mot de passe est incorrect',
                 
             }
+        connection.close()
         return jsonify(response)
     else:
         # Utilisateur non trouvé
@@ -73,6 +124,7 @@ def login():
                 'message': 'Utilisateur non trouvé',
                 
             }
+        connection.close()
         return jsonify(response)
 
 #Pour déchiffrer et vérifier un token dans un route protégée, on utilise le décorateur 'jwt_required()' de la bibliothèque Flask-JWT-Extended
@@ -87,5 +139,8 @@ def protected():
     current_user = get_jwt_identity() 
     #print(current_user)  #pour vérifier ce qu'il y a dedans
     
+    response = {
+                'current_user': current_user
+                }
     #effectuez des opérations protégées avec l'identité de l'utilisateur
-    return f"Utilisateur authentifié : {current_user}"
+    return jsonify(response);
