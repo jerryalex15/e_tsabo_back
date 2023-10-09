@@ -108,10 +108,11 @@ def login():
                 # Authentification réussie
                 
                 user_id = dict_user['id'] 
-                access_token = create_access_token(identity=user_id)
-            
+               
+                user_info = get_user_info(user_id)
+                access_token = create_access_token(identity=user_id, additional_claims=user_info)
                 response = {
-                    'idUser': dict_user['id'],
+                    
                     'success': True,
                     'message': 'Authentification réussie',
                     'token' : access_token
@@ -169,3 +170,36 @@ def protected():
         error_message = str(e)
         current_app.logger.error(f'Erreur lors de l\'inscription : {e}')
         return jsonify({'error': error_message}), 500
+
+
+def get_user_info(userId):
+
+    try:
+
+        connection = create_new_connection()
+        cur = connection.cursor()
+
+        cur.execute("SELECT username,email,name,gender,isDoc,birthdate,specialite FROM users WHERE id = %s", (userId,))
+        user = cur.fetchone()
+
+        cur.close()
+        connection.close()
+
+        claims = {
+            "username": user[0],
+            "email": user[1],
+            "name": user[2],
+            "gender": user[3],
+            "isDoc": user[4],
+            "birthdate": user[5],
+            "specialite":user[6]
+
+        }
+
+        return claims
+
+    except Exception as e:
+    # Gérez les exceptions en fonction de vos besoins
+        error_message = str(e)
+        current_app.logger.error(f'Erreur lors de la collection des informations de l\'utilisateur : {e}')
+        return {'error': error_message}
