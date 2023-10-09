@@ -15,7 +15,12 @@ database = config('etsabodb', default='')
 
 # Établir la connexion
 try:
-    connection = mysql.connector.connect(host=host, user=user, password=password, database='etsabodb', charset='utf8')
-    print("Connexion réussie !")
+    def create_new_connection():
+        
+            connection = mysql.connector.connect(host=host, user=user, password=password, database='etsabodb', charset='utf8')
+            print("Connexion réussie !")
+            return connection
+
+    
 except mysql.connector.Error as error:
     print("Erreur de connexion : {}".format(error))
