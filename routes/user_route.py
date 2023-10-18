@@ -1,5 +1,6 @@
 from flask import Blueprint, flash, request, redirect, url_for, jsonify,current_app
 import jwt
+from flask_cors import cross_origin
 from decouple import config
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 from database import create_new_connection
@@ -84,6 +85,7 @@ def registration():
 
 
 @user_route.route('/api/user_route/login', methods=['POST'])
+@cross_origin()
 def login():
     try:
     # Récupérer les données d'identification de l'utilisateur depuis la requête POST
@@ -127,7 +129,6 @@ def login():
                     
                 }
             
-
             current_app.logger.info('Authentification échouée: mot de passe incorrect')
             return jsonify(response),401
         else:
