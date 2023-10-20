@@ -8,8 +8,8 @@ import bcrypt
 
 
 user_route = Blueprint('user', __name__)
-@cross_origin()
 @user_route.route('/api/user_route/registration', methods=[ 'POST'])
+@cross_origin()
 def registration():
     
 
@@ -206,3 +206,15 @@ def get_user_info(userId):
         error_message = str(e)
         current_app.logger.error(f'Erreur lors de la collection des informations de l\'utilisateur : {e}')
         return {'error': error_message}
+
+# @user_route.route('/ma_route', methods=['GET'])
+# def ma_fonction_de_vue():
+#     # Code de traitement pour la route GET
+#      connection = create_new_connection()
+#      cur = connection.cursor()
+#      cur.execute("SELECT id,username FROM users")
+#      user = cur.fetchone()
+#      cur.close()
+#      connection.close()
+#      print(user)
+    

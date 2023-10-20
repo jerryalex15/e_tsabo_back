@@ -11,7 +11,7 @@ from config import config
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
 app.config['SECRET_KEY'] = 'fyfedsqdohazjepoka785'
 app.config['DEBUG'] = True
 app.config['JWT_TOKEN_LOCATION'] = ['headers']
