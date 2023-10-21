@@ -8,7 +8,7 @@ import bcrypt
 
 
 user_route = Blueprint('user', __name__)
-
+@cross_origin()
 @user_route.route('/api/user_route/registration', methods=[ 'POST'])
 def registration():
     
@@ -55,7 +55,9 @@ def registration():
             return jsonify({'error': 'Cet adresse email est déjà utilisé'}), 400
 
         if password != confirm_password:
-            return jsonify({'error': 'Les mots de passe ne correspondent pas'}), 400
+            return jsonify({
+                
+                    'error': 'Les mots de passe ne correspondent pas'}), 400
 
         #Enregistrer utilisateur
         connection = create_new_connection()
@@ -69,7 +71,7 @@ def registration():
 
         response_data = {
             "success" : True,
-            "message" : "Inscription réussi"
+            "message" : "Inscription réussie"
         }
         current_app.logger.info('Inscription réussie')  # Enregistrement d'une information
         return jsonify(response_data),200

@@ -5,7 +5,7 @@ from flask_bcrypt import Bcrypt
 from routes.user_route import user_route
 from decouple import Config,Csv
 from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
-import logging
+import logging                  
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*"}})
