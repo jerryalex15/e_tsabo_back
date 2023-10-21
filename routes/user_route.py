@@ -1,5 +1,6 @@
 from flask import Blueprint, flash, request, redirect, url_for, jsonify,current_app
 import jwt
+from flask_cors import cross_origin
 from decouple import config
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token, JWTManager
 from database import create_new_connection
@@ -7,7 +8,7 @@ import bcrypt
 
 
 user_route = Blueprint('user', __name__)
-
+@cross_origin()
 @user_route.route('/api/user_route/registration', methods=[ 'POST'])
 def registration():
     
@@ -54,7 +55,9 @@ def registration():
             return jsonify({'error': 'Cet adresse email est déjà utilisé'}), 400
 
         if password != confirm_password:
-            return jsonify({'error': 'Les mots de passe ne correspondent pas'}), 400
+            return jsonify({
+                
+                    'error': 'Les mots de passe ne correspondent pas'}), 400
 
         #Enregistrer utilisateur
         connection = create_new_connection()
@@ -68,7 +71,7 @@ def registration():
 
         response_data = {
             "success" : True,
-            "message" : "Inscription réussi"
+            "message" : "Inscription réussie"
         }
         current_app.logger.info('Inscription réussie')  # Enregistrement d'une information
         return jsonify(response_data),200
@@ -84,6 +87,7 @@ def registration():
 
 
 @user_route.route('/api/user_route/login', methods=['POST'])
+@cross_origin()
 def login():
     try:
     # Récupérer les données d'identification de l'utilisateur depuis la requête POST
@@ -108,10 +112,11 @@ def login():
                 # Authentification réussie
                 
                 user_id = dict_user['id'] 
-                access_token = create_access_token(identity=user_id)
-            
+               
+                user_info = get_user_info(user_id)
+                access_token = create_access_token(identity=user_id, additional_claims=user_info)
                 response = {
-                    'idUser': dict_user['id'],
+                    
                     'success': True,
                     'message': 'Authentification réussie',
                     'token' : access_token
@@ -126,7 +131,6 @@ def login():
                     
                 }
             
-
             current_app.logger.info('Authentification échouée: mot de passe incorrect')
             return jsonify(response),401
         else:
@@ -169,3 +173,36 @@ def protected():
         error_message = str(e)
         current_app.logger.error(f'Erreur lors de l\'inscription : {e}')
         return jsonify({'error': error_message}), 500
+
+
+def get_user_info(userId):
+
+    try:
+
+        connection = create_new_connection()
+        cur = connection.cursor()
+
+        cur.execute("SELECT username,email,name,gender,isDoc,birthdate,specialite FROM users WHERE id = %s", (userId,))
+        user = cur.fetchone()
+
+        cur.close()
+        connection.close()
+
+        claims = {
+            "username": user[0],
+            "email": user[1],
+            "name": user[2],
+            "gender": user[3],
+            "isDoc": user[4],
+            "birthdate": user[5],
+            "specialite":user[6]
+
+        }
+
+        return claims
+
+    except Exception as e:
+    # Gérez les exceptions en fonction de vos besoins
+        error_message = str(e)
+        current_app.logger.error(f'Erreur lors de la collection des informations de l\'utilisateur : {e}')
+        return {'error': error_message}

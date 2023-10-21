@@ -5,13 +5,13 @@ from flask_bcrypt import Bcrypt
 from routes.user_route import user_route
 from decouple import Config,Csv
 from flask_jwt_extended import jwt_required, get_jwt_identity, JWTManager
-import logging
+import logging                  
 
 from config import config
 from flask_mail import Mail, Message
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['SECRET_KEY'] = 'fyfedsqdohazjepoka785'
 app.config['DEBUG'] = True
 app.config['JWT_TOKEN_LOCATION'] = ['headers']
